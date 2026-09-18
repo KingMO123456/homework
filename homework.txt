@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define NUM_ROUTES 13
+
+// 13条路线，编号0~12
+const char* routeNames[NUM_ROUTES] = {
+    "A->B", "A->C", "A->D",
+    "B->A", "B->C", "B->D",
+    "D->A", "D->B", "D->C",
+    "E->A", "E->B", "E->C", "E->D"
+};
+
+// 邻接矩阵：routeConflict[i][j]=1 代表路线i,j冲突，不能同时绿灯
+bool routeConflict[NUM_ROUTES][NUM_ROUTES] = {
+    // 0 A->B
+    {0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1},
+    // 1 A->C
+    {0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1},
+    // 2 A->D 【样例：A->D 和 E->B冲突】
+    {1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0},
+    // 3 B->A
+    {1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1},
+    // 4 B->C
+    {0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1},
+    // 5 B->D
+    {1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1},
+    // 6 D->A
+    {1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0},
+    // 7 D->B
+    {0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1},
+    // 8 D->C
+    {0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0},
+    // 9 E->A
+    {1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0},
+    //10 E->B 【样例：E->B 和 A->D冲突】
+    {1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0},
+    //11 E->C 【样例：A->B 和 E->C不冲突】
+    {0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0},
+    //12 E->D
+    {1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0}
+};
+
+int color[NUM_ROUTES];
+
+// 判断该路线是否可以使用颜色c
+bool isSafe(int route, int c)
+{
+    for(int i = 0; i < NUM_ROUTES; i++)
+    {
+        if(routeConflict[route][i] && color[i] == c)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void graphColoring()
+{
+    for(int i = 0; i < NUM_ROUTES; i++)
+        color[i] = -1;
+
+    for(int r = 0; r < NUM_ROUTES; r++)
+    {
+        int c = 1;
+        while(true)
+        {
+            if(isSafe(r, c))
+            {
+                color[r] = c;
+                break;
+            }
+            c++;
+        }
+    }
+}
+
+int main()
+{
+    graphColoring();
+
+    printf("===== 五岔路口交通灯调度（图着色）=====\n");
+    printf("共13条路线,同相位可以同时放行\n");
+    printf("校验样例:E->B 与 A->D冲突;A->B 与 E->C不冲突\n\n");
+
+    // 输出所有相位分组
+    for(int phase = 1; phase <= 5; phase++)
+    {
+        printf("【相位 %d】", phase);
+        for(int r = 0; r < NUM_ROUTES; r++)
+        {
+            if(color[r] == phase)
+            {
+                printf(" %s", routeNames[r]);
+            }
+        }
+        printf("\n");
+    }
+
+    printf("\n==== 冲突关系校验 ====\n");
+    printf("A->D(2号) 和 E->B(10号) 冲突关系：%s\n", routeConflict[2][10] ? "是冲突" : "不冲突");
+    printf("A->B(0号) 和 E->C(11号) 冲突关系：%s\n", routeConflict[0][11] ? "是冲突" : "不冲突");
+    return 0;
+}
